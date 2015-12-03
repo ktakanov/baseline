@@ -1,6 +1,8 @@
 __author__ = 'pdanilov'
 
 import pandas as pd
+import numpy as np
+import os
 
 date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
 
@@ -21,3 +23,14 @@ def read_buys(file_buys):
     dict_type = {'Session ID': int, 'Timestamp': pd.tslib.Timestamp, 'Item ID': int, 'Price': int, 'Quantity': int}
     global date_format
     return pd.read_csv(file_buys, engine='c', names=column_names, dtype=dict_type, parse_dates=['Timestamp'], date_parser=date_parse)
+
+
+def write_predictions(predictions, file_predictions):
+    np.savetxt(file_predictions, predictions, fmt='%d', newline='\n')
+
+
+def features_to_csv(what_to_buy_features, buy_or_not_features, path_to_data):
+    for key in what_to_buy_features.keys():
+        what_to_buy_features[key].to_csv(path_or_buf=os.path.join(path_to_data, 'features', key + '.dat'))
+
+    buy_or_not_features.to_csv(path_or_buf=os.path.join(path_to_data, 'features', 'p', '.dat'))

@@ -3,10 +3,9 @@ __author__ = 'pdanilov'
 from sklearn.ensemble import RandomForestClassifier
 
 
-def fit_data(features, outputs):
-    classifier = RandomForestClassifier(min_samples_split=200)
-    # ##################################### TO MODIFY ######################################
-    # If features is a data frame, get a column with predictions
+def fit_data(features, outputs_df):
+    classifier = RandomForestClassifier(min_samples_split=200, njobs=-1)
+    outputs = outputs_df['Prediction']
     classifier.fit(features, outputs)
     return classifier
 

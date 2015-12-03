@@ -32,12 +32,12 @@ def extract_p6(f3):
     return f3.max(axis='columns')
 
 
-def extract_p7(grouped):
-    pass
+def extract_p7(f5):
+    return f5.mean(axis='columns')
 
 
-def extract_p8(grouped):
-    pass
+def extract_p8(f5):
+    return f5.max(axis='columns')
 
 
 def extract_p9(grouped):
@@ -72,17 +72,17 @@ def extract_buy_or_not(clicks, features_what_to_buy):
 
 
 # computation of feature matrix for data frames being constructed (features F1...F7)
-def get_matrix_by_dicts(num_of_sessions, num_of_items, min_item_id, list_of_dicts, fill_nans=False):
+def get_matrix_by_dicts(n_rows, n_cols, min_id, list_of_dicts, fill_nans=False):
     # would be fine trying to find out how to optimize this function using np.concatenate
     # data_type = type(list_of_dicts[0][list(list_of_dicts[0].keys())[0]])
     if fill_nans:
-        matrix = np.empty((num_of_sessions, num_of_items))
+        matrix = np.empty((n_rows, n_cols))
         matrix.fill(np.nan)
     else:
-        matrix = np.zeros((num_of_sessions, num_of_items))
+        matrix = np.zeros((n_rows, n_cols))
     for row, column_dict in enumerate(list_of_dicts):
         for col, value in column_dict.items():
-            matrix[row][col - min_item_id] = value  # shift second axis
+            matrix[row][col - min_id] = value  # shift second axis
     return matrix
 
 
@@ -99,11 +99,11 @@ def get_resulting_data_frame(grouped, func, fill_nans=False):
 
 
 def extract_f1(grouped):
-    return get_resulting_data_frame(grouped, lambda x: dict([(x['Item ID'].iloc[0], True)]))
+    return get_resulting_data_frame(grouped, lambda x: {x['Item ID'].iloc[0]: True})
 
 
 def extract_f2(grouped):
-    return get_resulting_data_frame(grouped, lambda x: dict([(x['Item ID'].iloc[-1], True)]))
+    return get_resulting_data_frame(grouped, lambda x: {x['Item ID'].iloc[-1]: True})
 
 
 def extract_f3(grouped):
@@ -178,12 +178,11 @@ def extract_buys(clicks, buys):
     session_id_max = max(clicks_session_id_list)
 
     buys_grouped = buys.groupby('Session ID')
-    buys_session_id_list = list(buys_grouped.groups.keys())
+    buys_session_id_dict = [{key: 1} for key in buys_grouped.groups.keys()]
+
+    array = get_matrix_by_dicts(session_id_max - session_id_min + 1, 1, session_id_min, buys_session_id_dict)
 
     columns = ['Session ID', 'Prediction']
-    resulting_df = pd.DataFrame([range(session_id_min, session_id_max + 1), np.zeros(session_id_max - session_id_min + 1)], columns=columns)
-
-    # ##################################### TO MODIFY ######################################
-    # Fill in resulting_df with 1s from buys_session_id_list
+    resulting_df = pd.DataFrame([range(session_id_min, session_id_max + 1), array], columns=columns)
 
     return resulting_df
