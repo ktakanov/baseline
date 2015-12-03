@@ -57,7 +57,8 @@ def extract_buy_or_not(clicks, features_what_to_buy):
     clicks = clicks[effective_columns_name_list]
 
     clicks_time_sorted = clicks.sort('Timestamp')
-    grouped_clicks_time_sorted = clicks_time_sorted.groupby('Session ID')
+    grouped_clicks_time_sorted \
+        = clicks_time_sorted.groupby('Session ID')
 
     p1 = extract_p1(grouped_clicks_time_sorted)
     p2 = extract_p2(features_what_to_buy['f3'])
@@ -68,7 +69,7 @@ def extract_buy_or_not(clicks, features_what_to_buy):
     p10 = extract_p6(features_what_to_buy['f6'])
     p11 = extract_p6(features_what_to_buy['f7'])
 
-    return np.matrix([p1, p2, p3, p4, p5, p6, p10, p11], dtype=np.float64).transpose()
+    return np.matrix([p1, p2, p3, p4, p5, p6, p10, p11], dtype=np.float32).transpose()
 
 
 # computation of feature matrix for data frames being constructed (features F1...F7)
@@ -149,7 +150,7 @@ def extract_f7(grouped):
         group.insert(loc=group.shape[1], column='Repeated Click', value=repeated)
         group_by_repeated = group.groupby('Repeated Click')
         result = group_by_repeated.get_group(positive_key).groupby('Item ID')['Time Difference'].max().to_dict() \
-            if positive_key in group_by_repeated.groups.keys() else {group['Item ID'].iloc[0]: np.float64(0)}
+            if positive_key in group_by_repeated.groups.keys() else {group['Item ID'].iloc[0]: np.float32(0)}
         return result
 
     return get_resulting_data_frame(grouped, max_duration_between_sequent_clicks)
