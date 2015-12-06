@@ -3,6 +3,7 @@ __author__ = 'pdanilov'
 from read_and_write_data import read_clicks, read_buys, write_predictions, write_metrics
 from feature_extraction import extract_buy_or_not, extract_what_to_buy, extract_buys
 from predictions import fit_data, predict_buy_or_not, metrics, split_data
+from preprocess_data import slice_data, sort_and_group_by
 
 import os
 import sys
@@ -31,6 +32,13 @@ if __name__ == '__main__':
     clicks = read_clicks(file_clicks)
     print('Reading buys file')
     buys = read_buys(file_buys)
+
+    print('Slicing data')
+    slice_data(clicks, buys, frac=0.01)
+
+    print('Sort and groupby')
+    # after applying clicks, buys are groupby objects
+    clicks, buys = sort_and_group_by(clicks, buys)
 
     print('Extracting what-to-buy train')
     what_to_buy = extract_what_to_buy(clicks)

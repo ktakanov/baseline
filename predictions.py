@@ -22,6 +22,6 @@ def metrics(y_true, y_pred):
     accuracy = accuracy_score(y_true, y_pred)
     return [precision, recall, accuracy]
 
-def split_data(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    return [X_train, X_test, y_train, y_test]
+def split_data(x, y):
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+    return [x_train, x_test, y_train, y_test]
