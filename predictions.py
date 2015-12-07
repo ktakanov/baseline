@@ -3,7 +3,6 @@ __author__ = 'pdanilov'
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from sklearn.cross_validation import train_test_split
-import numpy as np
 
 
 def fit_data(features, outputs_df):
