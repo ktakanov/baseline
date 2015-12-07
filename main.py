@@ -34,17 +34,20 @@ if __name__ == '__main__':
     buys = read_buys(file_buys)
 
     print('Slicing data')
-    clicks, buys = slice_data(clicks, buys, frac=0.05)
+    print('{0}, {1}'.format(len(clicks.groupby('Session ID')), len(buys.groupby('Session ID'))))
+    clicks, buys = slice_data(clicks, buys, frac=0.5)
+    print('{0}, {1}'.format(len(clicks.groupby('Session ID')), len(buys.groupby('Session ID'))))
 
     print('Sort and groupby')
     # after applying clicks, buys are groupby objects
     clicks, clicks_group_keys = df_group_by(clicks, sort=True)
     buys, buys_group_keys = df_group_by(buys)
 
-    print('Extracting what-to-buy train')
-    what_to_buy = extract_what_to_buy(clicks, clicks_group_keys)
+    # print('Extracting what-to-buy train')
+    # what_to_buy = extract_what_to_buy(clicks, clicks_group_keys)
     print('Extracting buy-or-not train')
-    buy_or_not = extract_buy_or_not(clicks, clicks_group_keys, what_to_buy)
+    # buy_or_not = extract_buy_or_not(clicks, clicks_group_keys, what_to_buy)
+    buy_or_not = extract_buy_or_not(clicks, clicks_group_keys, [])
     print('Extracting buys train')
     buys_result = extract_buys(clicks_group_keys, buys_group_keys)
 
@@ -61,10 +64,11 @@ if __name__ == '__main__':
     test = read_clicks(file_test)
     test, test_group_keys = df_group_by(test)
 
-    print('Extracting what-to-buy test')
-    what_to_buy_test = extract_what_to_buy(test, test_group_keys)
+    # print('Extracting what-to-buy test')
+    # what_to_buy_test = extract_what_to_buy(test, test_group_keys)
     print('Extracting buy-or-not test')
-    buy_or_not_test = extract_buy_or_not(test, test_group_keys, what_to_buy_test)
+    # buy_or_not_test = extract_buy_or_not(test, test_group_keys, what_to_buy_test)
+    buy_or_not_test = extract_buy_or_not(test, test_group_keys, [])
 
     print('Prediction')
     predictions_test = predict_buy_or_not(classifier, buy_or_not_test)

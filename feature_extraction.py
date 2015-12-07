@@ -17,8 +17,7 @@ def extract_p3(grouped):
 
 
 def extract_p4(grouped, group_keys):
-    list_of_series = [grouped.get_group(key)['Timestamp'].diff().astype('timedelta64[ms]').max() for key in group_keys]
-    return pd.Series(list_of_series, index=group_keys, dtype=np.float16)
+    return grouped.apply(lambda x: x['Timestamp'].diff().astype('timedelta64[ms]').max())
 
 
 def extract_p5(grouped, p3):
@@ -53,22 +52,23 @@ def extract_p11(f7):
 def extract_buy_or_not(clicks_gb, clicks_group_keys, features_what_to_buy):
     print('\tExtracting p1')
     p1 = extract_p1(clicks_gb)
-    print('\tExtracting p2')
-    p2 = extract_p2(features_what_to_buy['f3'])
+    # print('\tExtracting p2')
+    # p2 = extract_p2(features_what_to_buy['f3'])
     print('\tExtracting p3')
     p3 = extract_p3(clicks_gb)
     print('\tExtracting p4')
     p4 = extract_p4(clicks_gb, clicks_group_keys)
     print('\tExtracting p5')
     p5 = extract_p5(clicks_gb, p3)
-    print('\tExtracting p6')
-    p6 = extract_p6(features_what_to_buy['f3'])
-    print('\tExtracting p10')
-    p10 = extract_p6(features_what_to_buy['f6'])
-    print('\tExtracting p11')
-    p11 = extract_p6(features_what_to_buy['f7'])
+    # print('\tExtracting p6')
+    # p6 = extract_p6(features_what_to_buy['f3'])
+    # print('\tExtracting p10')
+    # p10 = extract_p6(features_what_to_buy['f6'])
+    # print('\tExtracting p11')
+    # p11 = extract_p6(features_what_to_buy['f7'])
 
-    return np.matrix([p1, p2, p3, p4, p5, p6, p10, p11], dtype=np.float16).transpose()
+    # return np.matrix([p1, p2, p3, p4, p5, p6, p10, p11], dtype=np.float16).transpose()
+    return np.matrix([p1, p3, p4, p5], dtype=np.float16).transpose()
 
 
 # computation of feature matrix for data frames being constructed (features F1...F7)
@@ -106,7 +106,7 @@ def get_resulting_data_frame(grouped, group_keys, func, dtype, fill_with_nans=Fa
     for index in range(num_of_sessions):
         key = group_keys[index]
         matrix[index] = create_row(matrix, grouped.get_group(key), func, min_item_id, dtype, fill_with_nans)
-    return pd.DataFrame(matrix, index=list(group_keys), columns=list(range(min_item_id, max_item_id + 1)))
+    return pd.DataFrame(matrix, index=group_keys, columns=list(range(min_item_id, max_item_id + 1)))
 
 
 def extract_f1(grouped, group_keys):
@@ -178,16 +178,14 @@ def extract_what_to_buy(clicks_gb, clicks_group_keys):
 
 
 def extract_buys(clicks_group_keys, buys_group_keys):
-    clicks_session_id_list = list(clicks_group_keys)
-    min_session_id = min(clicks_session_id_list)
-    max_session_id = max(clicks_session_id_list)
-    num_of_sessions = max_session_id - min_session_id + 1
+    min_session_id = min(clicks_group_keys)
+    num_of_sessions = len(clicks_group_keys)
 
     array = np.zeros(num_of_sessions, dtype=np.int8)
-    index = np.array(list(buys_group_keys), dtype=np.int32) - min_session_id
+    index = np.array(buys_group_keys, dtype=np.int32) - min_session_id
     array[index] = np.int8(1)
 
     columns = ['Session ID', 'Prediction']
-    resulting_df = pd.DataFrame([range(min_session_id, max_session_id + 1), array], columns=columns)
+    resulting_df = pd.DataFrame(np.matrix([clicks_group_keys, array]).transpose(), columns=columns)
 
     return resulting_df
