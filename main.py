@@ -10,11 +10,8 @@ import sys
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 7:
-        args_err_msg = r"Incorrect argument list, names also shouldn't contain spaces" + \
-                       "\nusage: argv[0] /dir/with/data clicks_file buys_file test_file scores_file resulting_file"
-        print(args_err_msg)
-        exit(0)
+    assert len(sys.argv) == 7, r"Incorrect argument list, names also shouldn't contain spaces" + \
+                               "\nusage: argv[0] /dir/with/data clicks_file buys_file test_file scores_file resulting_file"
     path = sys.argv[1]
     file_clicks_basename = sys.argv[2]
     file_buys_basename = sys.argv[3]
@@ -28,26 +25,23 @@ if __name__ == '__main__':
     file_scores = os.path.join(path, file_scores_basename)
     file_result = os.path.join(path, file_result_basename)
 
-    print('Reading clicks file')
-    clicks = read_clicks(file_clicks)
-    print('Reading buys file')
-    buys = read_buys(file_buys)
+    effective_columns_names = ['Session ID', 'Timestamp', 'Item ID']
 
-    print('Slicing data')
-    print('{0}, {1}'.format(len(clicks.groupby('Session ID')), len(buys.groupby('Session ID'))))
-    clicks, buys = slice_data(clicks, buys, frac=0.5)
-    print('{0}, {1}'.format(len(clicks.groupby('Session ID')), len(buys.groupby('Session ID'))))
+    print('Reading clicks file')
+    clicks = read_clicks(file_clicks, usecols=effective_columns_names)
+    print('Reading buys file')
+    buys = read_buys(file_buys, usecols=effective_columns_names)
 
     print('Sort and groupby')
     # after applying clicks, buys are groupby objects
-    clicks, clicks_group_keys = df_group_by(clicks, sort=True)
-    buys, buys_group_keys = df_group_by(buys)
+    clicks_gb, clicks_group_keys = df_group_by(clicks, sort=True)
+    buys_gb, buys_group_keys = df_group_by(buys)
 
-    # print('Extracting what-to-buy train')
-    # what_to_buy = extract_what_to_buy(clicks, clicks_group_keys)
+    print('Extracting what-to-buy train')
+    what_to_buy = extract_what_to_buy(clicks_gb, clicks_group_keys)
     print('Extracting buy-or-not train')
-    # buy_or_not = extract_buy_or_not(clicks, clicks_group_keys, what_to_buy)
-    buy_or_not = extract_buy_or_not(clicks, clicks_group_keys, [])
+    buy_or_not = extract_buy_or_not(clicks_gb, what_to_buy)
+    # buy_or_not = extract_buy_or_not(clicks_gb, [])
     print('Extracting buys train')
     buys_result = extract_buys(clicks_group_keys, buys_group_keys)
 
@@ -61,14 +55,14 @@ if __name__ == '__main__':
     write_metrics(scores, file_scores)
 
     print('Reading test file')
-    test = read_clicks(file_test)
-    test, test_group_keys = df_group_by(test)
+    test = read_clicks(file_test, usecols=effective_columns_names)
+    test_gb, test_group_keys = df_group_by(test)
 
-    # print('Extracting what-to-buy test')
-    # what_to_buy_test = extract_what_to_buy(test, test_group_keys)
+    print('Extracting what-to-buy test')
+    what_to_buy_test = extract_what_to_buy(test_gb, test_group_keys)
     print('Extracting buy-or-not test')
-    # buy_or_not_test = extract_buy_or_not(test, test_group_keys, what_to_buy_test)
-    buy_or_not_test = extract_buy_or_not(test, test_group_keys, [])
+    buy_or_not_test = extract_buy_or_not(test_gb, what_to_buy_test)
+    # buy_or_not_test = extract_buy_or_not(test_gb, [])
 
     print('Prediction')
     predictions_test = predict_buy_or_not(classifier, buy_or_not_test)

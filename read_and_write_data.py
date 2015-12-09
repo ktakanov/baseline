@@ -5,27 +5,32 @@ import numpy as np
 import os
 
 date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-effective_columns_name_list = ['Session ID', 'Timestamp', 'Item ID']
 
 
 def date_parse(dates):
     return [pd.datetime.strptime(date, date_format) for date in dates]
 
 
-def read_clicks(file_clicks):
+def read_clicks(file_clicks, usecols=None):
     column_names = ['Session ID', 'Timestamp', 'Item ID', 'Category']
     dict_type = {'Session ID': np.int32, 'Timestamp': pd.tslib.Timestamp, 'Item ID': np.int32, 'Category': str}
     global date_format
     return pd.read_csv(file_clicks, engine='c', names=column_names, dtype=dict_type, parse_dates=['Timestamp'], date_parser=date_parse, \
-                       usecols=effective_columns_name_list)
+                       usecols=usecols)
 
 
-def read_buys(file_buys):
+def read_buys(file_buys, usecols=None):
     column_names = ['Session ID', 'Timestamp', 'Item ID', 'Price', 'Quantity']
     dict_type = {'Session ID': np.int32, 'Timestamp': pd.tslib.Timestamp, 'Item ID': np.int32, 'Price': np.int16, 'Quantity': np.int8}
     global date_format
     return pd.read_csv(file_buys, engine='c', names=column_names, dtype=dict_type, parse_dates=['Timestamp'], date_parser=date_parse, \
-                       usecols=effective_columns_name_list)
+                       usecols=usecols)
+
+
+def write_df(df, file):
+    global date_format
+    df.to_csv(file, na_rep='NA', header=False, index=False, date_format=date_format)
+
 
 def write_predictions(predictions, file_predictions):
     np.savetxt(file_predictions, predictions, fmt='%d', newline='\n')
