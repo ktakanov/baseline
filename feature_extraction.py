@@ -55,9 +55,6 @@ def extract_buy_or_not(clicks_gb, features_what_to_buy):
     p11 = extract_p11(features_what_to_buy['f7'])
 
     features_matrix = np.matrix([p1, p2, p3, p4, p5, p6, p10, p11]).transpose()
-    # resulting_df = pd.DataFrame(features_matrix, columns=['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p10', 'p11'])
-    # session_array = np.array(clicks_group_keys)
-    # resulting_df.insert(loc=0, column='Session ID', value=session_array)
     return features_matrix
 
 
@@ -76,35 +73,11 @@ def get_resulting_data_frame(grouped, group_keys, func):
     return pd.concat(list_of_session_data_frames, ignore_index=True)
 
 
-def extract_f1(grouped, group_keys):
-    return get_resulting_data_frame(grouped, group_keys, lambda x: pd.DataFrame([True], index=[x['Item ID'].iloc[0]], dtype=bool))
-
-
-def extract_f2(grouped, group_keys):
-    return get_resulting_data_frame(grouped, group_keys, lambda x: pd.DataFrame([True], index=[x['Item ID'].iloc[-1]], dtype=bool))
-
-
 def extract_f3(grouped, group_keys):
     def value_counts(group):
         return pd.Series(group['Item ID'].value_counts(), name='Counts')
 
     return get_resulting_data_frame(grouped, group_keys, value_counts).rename(columns={'index': 'Item ID'}).drop('Item ID', axis=1)
-
-
-def extract_f4(grouped, group_keys):
-    def time_spent(group):
-        # differing starts from first, not second row, with opposite direction -> multiply by -1
-        time_diff = group['Timestamp'].diff(periods=-1).astype('timedelta64[ms]') * (-1)
-        # time_diff.iloc[-1] = time_diff.mean() would be equivalent to next line
-        time_diff.fillna(time_diff.mean(), inplace=True)
-        group.insert(loc=group.shape[1], column='Time Difference', value=time_diff)
-        return group.groupby('Item ID')['Time Difference'].sum()
-
-    return get_resulting_data_frame(grouped, group_keys, time_spent)
-
-
-def extract_f5(grouped, group_keys):
-    pass
 
 
 def extract_f6(grouped, group_keys):
@@ -156,8 +129,6 @@ def extract_buys(clicks_group_keys, buys_group_keys):
     session_series = pd.Series(0, dtype=np.int8, index=clicks_group_keys)
     session_series[buys_group_keys] = np.int8(1)
 
-    # columns = ['Session ID', 'Prediction']
-    # resulting_df = pd.DataFrame(np.matrix([clicks_group_keys, session_series]).transpose(), columns=columns)
     result = np.matrix(session_series).transpose()
 
     return result

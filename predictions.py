@@ -24,5 +24,4 @@ def metrics(y_true, y_pred):
 
 def split_data(x, y, test_size):
     x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=test_size)
-    # return [x_train, x_test, np.array(y_train['Prediction'], dtype=np.intc), np.array(y_test['Prediction'], dtype=np.intc)]
     return [x_train, x_val, np.ravel(y_train), np.ravel(y_val)]
