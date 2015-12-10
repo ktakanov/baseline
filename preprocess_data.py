@@ -23,5 +23,7 @@ def df_group_by(df, sort=False):
     if sort:
         df.sort('Timestamp', inplace=True)
     df = df.groupby('Session ID')
-    df_group_keys = np.array(list(df.groups.keys()), dtype=np.int32)
+    keys = list(df.groups.keys())
+    keys.sort()
+    df_group_keys = np.array(keys, dtype=np.int32)
     return [df, df_group_keys]

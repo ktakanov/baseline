@@ -38,7 +38,7 @@ def write_predictions(predictions, file_predictions):
 
 def write_metrics(metrics, file_name):
     file = open(file_name, 'w')
-    file.write('Precision: {0}\nRecall: {1}\nAccuracy: {2}'.format(metrics[0], metrics[1], metrics[2]))
+    file.write('Precision: {0}\nRecall: {1}\nF1-Score: {2}\nAccuracy: {3}'.format(metrics[0], metrics[1], metrics[2], metrics[3]))
     file.close()
 
 

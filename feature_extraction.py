@@ -5,7 +5,7 @@ import numpy as np
 
 
 def extract_p1(grouped):
-    return grouped['Timestamp'].count()
+    return grouped.size()
 
 
 def extract_p2(f3):
@@ -20,8 +20,8 @@ def extract_p4(grouped):
     return grouped.apply(lambda x: x['Timestamp'].diff().astype('timedelta64[ms]').fillna(np.float64(0)).max())
 
 
-def extract_p5(grouped, p3):
-    return p3.divide(grouped.size())
+def extract_p5(p1, p3):
+    return p3.divide(p1)
 
 
 def extract_p6(f3):
@@ -46,7 +46,7 @@ def extract_buy_or_not(clicks_gb, features_what_to_buy):
     print('\tExtracting p4')
     p4 = extract_p4(clicks_gb)
     print('\tExtracting p5')
-    p5 = extract_p5(clicks_gb, p3)
+    p5 = extract_p5(p1, p3)
     print('\tExtracting p6')
     p6 = extract_p6(features_what_to_buy['f3'])
     print('\tExtracting p10')
@@ -54,32 +54,11 @@ def extract_buy_or_not(clicks_gb, features_what_to_buy):
     print('\tExtracting p11')
     p11 = extract_p11(features_what_to_buy['f7'])
 
-    result = np.matrix([p1, p2, p3, p4, p5, p6, p10, p11]).transpose()
-    # result = np.matrix([p1, p3, p4, p5]).transpose()
-    return result
-
-
-def create_matrix_row(matrix, df, func, min_item_id, dtype, fill_with_nans=False):
-    result = func(df)
-    index = [] if len(result.index) == 0 else (result.index - min_item_id)
-    num_of_items = matrix.shape[1]
-    row = np.zeros(num_of_items, dtype=dtype)
-    if fill_with_nans:
-        row.fill(np.nan)
-    row[index] = result.as_matrix()
-    return row
-
-# getting result of computations for every feature in F1...F7 into data frames
-def get_resulting_df_by_matrix(grouped, group_keys, func, dtype, fill_with_nans=False):
-    min_item_id = grouped['Item ID'].min().min()
-    max_item_id = grouped['Item ID'].max().max()
-    num_of_items = max_item_id - min_item_id + 1
-    num_of_sessions = len(group_keys)
-    matrix = np.zeros([num_of_sessions, num_of_items], dtype=dtype)
-    for index in range(num_of_sessions):
-        key = group_keys[index]
-        matrix[index] = create_matrix_row(matrix, grouped.get_group(key), func, min_item_id, dtype, fill_with_nans)
-    return pd.DataFrame(matrix, index=group_keys, columns=list(range(min_item_id, max_item_id + 1)))
+    features_matrix = np.matrix([p1, p2, p3, p4, p5, p6, p10, p11]).transpose()
+    # resulting_df = pd.DataFrame(features_matrix, columns=['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p10', 'p11'])
+    # session_array = np.array(clicks_group_keys)
+    # resulting_df.insert(loc=0, column='Session ID', value=session_array)
+    return features_matrix
 
 
 def create_session_data_frame(df, func, session_id):
@@ -109,7 +88,7 @@ def extract_f3(grouped, group_keys):
     def value_counts(group):
         return pd.Series(group['Item ID'].value_counts(), name='Counts')
 
-    return get_resulting_data_frame(grouped, group_keys, value_counts).rename(columns={'index': 'Item ID'})
+    return get_resulting_data_frame(grouped, group_keys, value_counts).rename(columns={'index': 'Item ID'}).drop('Item ID', axis=1)
 
 
 def extract_f4(grouped, group_keys):
@@ -140,7 +119,7 @@ def extract_f6(grouped, group_keys):
         result = group.groupby('Item ID')['Repeated Click'].sum().apply(lambda x: 1 if x == 0 else x)
         return result
 
-    return get_resulting_data_frame(grouped, group_keys, sequent_clicks)
+    return get_resulting_data_frame(grouped, group_keys, sequent_clicks).drop('Item ID', axis=1)
 
 
 def extract_f7(grouped, group_keys):
@@ -159,7 +138,7 @@ def extract_f7(grouped, group_keys):
             if negative_key in group_by_repeated.groups.keys() else None
         return pd.concat([result_pos, result_neg])
 
-    return get_resulting_data_frame(grouped, group_keys, max_duration_between_sequent_clicks)
+    return get_resulting_data_frame(grouped, group_keys, max_duration_between_sequent_clicks).drop('Item ID', axis=1)
 
 
 def extract_what_to_buy(clicks_gb, clicks_group_keys):
@@ -177,7 +156,8 @@ def extract_buys(clicks_group_keys, buys_group_keys):
     session_series = pd.Series(0, dtype=np.int8, index=clicks_group_keys)
     session_series[buys_group_keys] = np.int8(1)
 
-    columns = ['Session ID', 'Prediction']
-    resulting_df = pd.DataFrame(np.matrix([clicks_group_keys, session_series]).transpose(), columns=columns)
+    # columns = ['Session ID', 'Prediction']
+    # resulting_df = pd.DataFrame(np.matrix([clicks_group_keys, session_series]).transpose(), columns=columns)
+    result = np.matrix(session_series).transpose()
 
-    return resulting_df
+    return result

@@ -3,7 +3,7 @@ __author__ = 'pdanilov'
 from read_and_write_data import read_clicks, read_buys, write_predictions, write_metrics
 from feature_extraction import extract_buy_or_not, extract_what_to_buy, extract_buys
 from predictions import fit_data, predict_buy_or_not, metrics, split_data
-from preprocess_data import slice_data, df_group_by
+from preprocess_data import df_group_by
 
 import os
 import sys
@@ -34,19 +34,18 @@ if __name__ == '__main__':
 
     print('Sort and groupby')
     # after applying clicks, buys are groupby objects
-    clicks_gb, clicks_group_keys = df_group_by(clicks, sort=True)
-    buys_gb, buys_group_keys = df_group_by(buys)
+    clicks, clicks_group_keys = df_group_by(clicks, sort=True)
+    buys, buys_group_keys = df_group_by(buys)
 
     print('Extracting what-to-buy train')
-    what_to_buy = extract_what_to_buy(clicks_gb, clicks_group_keys)
+    what_to_buy = extract_what_to_buy(clicks, clicks_group_keys)
     print('Extracting buy-or-not train')
-    buy_or_not = extract_buy_or_not(clicks_gb, what_to_buy)
-    # buy_or_not = extract_buy_or_not(clicks_gb, [])
+    buy_or_not = extract_buy_or_not(clicks, what_to_buy)
     print('Extracting buys train')
     buys_result = extract_buys(clicks_group_keys, buys_group_keys)
 
     print('Classifier learning on validation')
-    buy_or_not_train, buy_or_not_val, buys_result_train, buys_result_val = split_data(buy_or_not, buys_result)
+    buy_or_not_train, buy_or_not_val, buys_result_train, buys_result_val = split_data(buy_or_not, buys_result, 0.2)
     classifier = fit_data(buy_or_not_train, buys_result_train)
 
     print('Prediction on validation')
@@ -55,14 +54,14 @@ if __name__ == '__main__':
     write_metrics(scores, file_scores)
 
     print('Reading test file')
+    # after applying test is a groupby object
     test = read_clicks(file_test, usecols=effective_columns_names)
-    test_gb, test_group_keys = df_group_by(test)
+    test, test_group_keys = df_group_by(test)
 
     print('Extracting what-to-buy test')
-    what_to_buy_test = extract_what_to_buy(test_gb, test_group_keys)
+    what_to_buy_test = extract_what_to_buy(test, test_group_keys)
     print('Extracting buy-or-not test')
-    buy_or_not_test = extract_buy_or_not(test_gb, what_to_buy_test)
-    # buy_or_not_test = extract_buy_or_not(test_gb, [])
+    buy_or_not_test = extract_buy_or_not(test, what_to_buy_test)
 
     print('Prediction')
     predictions_test = predict_buy_or_not(classifier, buy_or_not_test)
