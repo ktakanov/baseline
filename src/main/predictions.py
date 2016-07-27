@@ -1,5 +1,3 @@
-__author__ = 'pdanilov'
-
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
@@ -21,6 +19,7 @@ def metrics(y_true, y_pred):
     precision, recall, f1_score = precision_recall_fscore_support(y_true, y_pred, average='binary')[0:3]
     accuracy = accuracy_score(y_true, y_pred)
     return [precision, recall, f1_score, accuracy]
+
 
 def split_data(x, y, test_size):
     x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=test_size)

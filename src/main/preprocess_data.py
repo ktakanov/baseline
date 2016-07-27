@@ -1,5 +1,3 @@
-__author__ = 'pdanilov'
-
 import random
 import numpy as np
 
@@ -16,14 +14,13 @@ def slice_data(clicks, buys, frac=1):
     buys.set_index('Session ID', drop=False, inplace=True)
     buys = buys.loc[buys_sample]
     buys.reset_index(drop=True, inplace=True)
-    return [clicks, buys]
+
+    return clicks, buys
 
 
-def df_group_by(df, sort=False):
-    if sort:
-        df.sort('Timestamp', inplace=True)
+def df_group_by_session_id(df):
     df = df.groupby('Session ID')
-    keys = list(df.groups.keys())
-    keys.sort()
+    keys = sorted(list(df.groups.keys()))
     df_group_keys = np.array(keys, dtype=np.int32)
-    return [df, df_group_keys]
+
+    return df, df_group_keys
