@@ -66,14 +66,14 @@ def extract_f7(clicks_gb):
 
 
 def extract_buy_or_not(clicks_gb, features_what_to_buy):
-    p1 = clicks_gb.size()
-    p2 = features_what_to_buy['f3'].groupby('Session ID')['Counts'].mean()
-    p3 = clicks_gb.apply(lambda x: x['Timestamp'].iloc[-1] - x['Timestamp'].iloc[0]).astype('timedelta64[ms]')
-    p4 = clicks_gb.apply(lambda x: x['Timestamp'].diff().astype('timedelta64[ms]').fillna(np.float64(0)).max())
-    p5 = p3.divide(p1)
-    p6 = features_what_to_buy['f3'].groupby('Session ID')['Counts'].max()
-    p10 = features_what_to_buy['f6'].groupby('Session ID')['Sequent Clicks'].max()
-    p11 = features_what_to_buy['f7'].groupby('Session ID')['Time Difference'].max()
+    p1 = extract_p1(clicks_gb)
+    p2 = extract_p2(features_what_to_buy['f3'])
+    p3 = extract_p3(clicks_gb)
+    p4 = extract_p4(clicks_gb)
+    p5 = extract_p5(p1, p3)
+    p6 = extract_p2(features_what_to_buy['f3'])
+    p10 = extract_p10(features_what_to_buy['f6'])
+    p11 = extract_p11(features_what_to_buy['f7'])
 
     return np.array([p1, p2, p3, p4, p5, p6, p10, p11], dtype=np.float32).transpose()
 
