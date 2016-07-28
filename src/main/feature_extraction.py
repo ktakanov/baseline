@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+no_cons_clicks_indicator = np.iinfo(np.int32).max
+
 
 def extract_what_to_buy(clicks_gb):
     f3 = extract_f3(clicks_gb)
@@ -53,7 +55,7 @@ def extract_f7(clicks_gb):
 
         result_neg =\
             group_by_repeated.get_group(negative_key).groupby('Item ID')['Time Difference']\
-                .apply(lambda x: np.float64(np.iinfo(np.int64).max))\
+                .apply(lambda x: np.float64(no_cons_clicks_indicator))\
             if negative_key in group_by_repeated.groups.keys()\
             else\
             None
@@ -107,11 +109,9 @@ def extract_p10(f6):
 
 
 def extract_p11(f7):
-    int64_max = np.iinfo(np.int64).max
-
     return f7.groupby('Session ID')['Time Difference']\
-        .apply(lambda group: group[group < int64_max].max())\
-        .fillna(int64_max)
+        .apply(lambda group: group[group < no_cons_clicks_indicator].max())\
+        .fillna(no_cons_clicks_indicator)
 
 
 def extract_buys(clicks_group_keys, buys_group_keys):

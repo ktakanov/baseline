@@ -46,4 +46,5 @@ Temporary Items
 # =========================
 data
 .idea
+*.pyc
 *.pdf

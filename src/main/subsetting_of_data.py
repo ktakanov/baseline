@@ -1,11 +1,7 @@
-__author__ = 'pdanilov'
-
-
-from read_and_write_data import read_clicks, read_buys, write_df
-from preprocess_data import slice_data
-
 import sys
 import os
+from read_and_write_data import read_clicks, read_buys, write_df
+from preprocess_data import slice_data
 
 
 if __name__ == "__main__":
@@ -17,7 +13,9 @@ if __name__ == "__main__":
     file_buys_basename = sys.argv[3]
     char_frac = sys.argv[4]
     float_frac = float(char_frac)
-    assert float_frac > 0, "frac must be a positive number"
+
+    assert float_frac > 0, 'Frac must be a positive number'
+
     frac = float_frac if float_frac <= 1 else int(float_frac)
     if frac == 1:
         exit(0)
@@ -31,15 +29,9 @@ if __name__ == "__main__":
     file_clicks_sliced = os.path.join(path, file_clicks_sliced_basename)
     file_buys_sliced = os.path.join(path, file_buys_sliced_basename)
 
-    print('Reading clicks file')
     clicks = read_clicks(file_clicks)
-    print('Reading buys file')
     buys = read_buys(file_buys)
-
-    print('Slicing data')
     clicks, buys = slice_data(clicks, buys, frac=frac)
 
-    print('Writing clicks file')
     write_df(clicks, file_clicks_sliced)
-    print('Write buys file')
     write_df(buys, file_buys_sliced)
