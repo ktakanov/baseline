@@ -31,23 +31,47 @@ def read_buys(file_buys, usecols=None):
     return read_data(file_buys, column_names, dtype_dict, usecols)
 
 
-def write_predictions(predictions, file_predictions):
+def mkdir_opt(full_file_path):
+    file_dir, _ = os.path.split(full_file_path)
+
+    if not os.path.isdir(file_dir):
+        os.makedirs(file_dir)
+
+
+def write_predictions(file_predictions, predictions):
+    mkdir_opt(file_predictions)
     np.savetxt(file_predictions, predictions, fmt='%d', newline='\n')
 
 
-def write_metrics(metrics, file_name):
+def write_metrics(file_name, metrics):
+    mkdir_opt(file_name)
+
     with open(file_name, 'w') as out_file:
         out_file.write('Precision: {0}\nRecall: {1}\nF1-Score: {2}\nAccuracy: {3}'.format(metrics[0], metrics[1],
                                                                                           metrics[2], metrics[3]))
 
 
-def write_df(df, out_file):
+def write_df(out_file, df):
+    mkdir_opt(out_file)
     df.to_csv(out_file, na_rep='NA', header=False, index=False, date_format=date_format)
 
 
-def features_to_csv(what_to_buy_features, buy_or_not_features, path_to_data):
+def features_to_csv(file_name, features_df_list):
+    features_df_list = [features_df.sort_values(by=['Session ID', 'Item ID']) for features_df in features_df_list]
+    features_df_concat = features_df_list[0].iloc[:, :2]
 
-    for key in what_to_buy_features.keys():
-        what_to_buy_features[key].to_csv(path_or_buf=os.path.join(path_to_data, 'features', key + '.dat'))
+    for features_df in features_df_list:
+        features_df_concat = features_df_concat.join(features_df.iloc[:, 2])
 
-    buy_or_not_features.to_csv(path_or_buf=os.path.join(path_to_data, 'features', 'p', '.dat'))
+    mkdir_opt(file_name)
+    features_df_concat.to_csv(path_or_buf=file_name, index=False)
+
+
+def features_from_csv(file_name, common_col_names, features_col_names_dict):
+    features_df = pd.read_csv(file_name, engine='c')
+    features_df_dict = features_col_names_dict
+
+    for feature_name, col_name in features_col_names_dict.iteritems():
+        features_df_dict[feature_name] = features_df[common_col_names + [col_name]]
+
+    return features_df_dict

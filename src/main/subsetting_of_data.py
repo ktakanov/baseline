@@ -33,5 +33,5 @@ if __name__ == "__main__":
     buys = read_buys(file_buys)
     clicks, buys = slice_data(clicks, buys, frac=frac)
 
-    write_df(clicks, file_clicks_sliced)
-    write_df(buys, file_buys_sliced)
+    write_df(file_clicks_sliced, clicks)
+    write_df(file_buys_sliced, buys)

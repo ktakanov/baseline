@@ -45,6 +45,8 @@ Temporary Items
 # Others
 # =========================
 data
+cache
+prediction
 .idea
 *.pyc
 *.pdf

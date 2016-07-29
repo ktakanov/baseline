@@ -1,21 +1,37 @@
 import pandas as pd
 import numpy as np
+import time
 
-no_cons_clicks_indicator = np.iinfo(np.int32).max
+no_cons_clicks_indicator = np.finfo(np.float32).max
+
+
+def extract_features(feature_name, extractor, *args):
+    print 'Extracting feature: ' + feature_name
+
+    start_time = time.time()
+    features = extractor(*args)
+    exec_time = int(time.time() - start_time)
+
+    print 'Extraction completed in {0} minutes {1} seconds'.format(exec_time / 60, exec_time % 60)
+
+    return features
 
 
 def extract_what_to_buy(clicks_gb):
-    f3 = extract_f3(clicks_gb)
-    f6 = extract_f6(clicks_gb)
-    f7 = extract_f7(clicks_gb)
+    features_computation_descs = {
+        'F3': (extract_f3, clicks_gb),
+        'F6': (extract_f6, clicks_gb),
+        'F7': (extract_f7, clicks_gb)
+    }
 
-    return {'f3': f3, 'f6': f6, 'f7': f7}
+    return {feature_name: extract_features(feature_name, extractor, arg)
+            for feature_name, (extractor, arg) in features_computation_descs.iteritems()}
 
 
 def extract_f3(clicks_gb):
 
     def counts(group):
-        return pd.Series(group['Item ID'].value_counts(), name='Counts')
+        return pd.Series(group['Item ID'].value_counts(sort=True), name='Counts')
 
     return clicks_gb.apply(counts).reset_index().rename(columns={'level_1': 'Item ID'})
 
@@ -55,7 +71,7 @@ def extract_f7(clicks_gb):
 
         result_neg =\
             group_by_repeated.get_group(negative_key).groupby('Item ID')['Time Difference']\
-                .apply(lambda x: np.float64(no_cons_clicks_indicator))\
+                .apply(lambda x: no_cons_clicks_indicator)\
             if negative_key in group_by_repeated.groups.keys()\
             else\
             None
@@ -68,16 +84,22 @@ def extract_f7(clicks_gb):
 
 
 def extract_buy_or_not(clicks_gb, features_what_to_buy):
-    p1 = extract_p1(clicks_gb)
-    p2 = extract_p2(features_what_to_buy['f3'])
-    p3 = extract_p3(clicks_gb)
-    p4 = extract_p4(clicks_gb)
-    p5 = extract_p5(p1, p3)
-    p6 = extract_p2(features_what_to_buy['f3'])
-    p10 = extract_p10(features_what_to_buy['f6'])
-    p11 = extract_p11(features_what_to_buy['f7'])
+    features_computation_descs = {
+        'P1': (extract_p1, clicks_gb),
+        'P2': (extract_p2, features_what_to_buy['F3']),
+        'P3': (extract_p3, clicks_gb),
+        'P4': (extract_p4, clicks_gb),
+        'P6': (extract_p6, features_what_to_buy['F3']),
+        'P10': (extract_p10, features_what_to_buy['F6']),
+        'P11': (extract_p11, features_what_to_buy['F7'])
+    }
+    features = {feature_name: extract_features(feature_name, extractor, arg)
+                for feature_name, (extractor, arg) in features_computation_descs.iteritems()}
+    features['P5'] = extract_features('P5', extract_p5, features['P1'], features['P3'])
+    features_list = [feature for feature_name, feature in
+                     sorted(features.items(), lambda (k1, v1), (k2, v2): cmp(int(k1[1:]), int(k2[1:])))]
 
-    return np.array([p1, p2, p3, p4, p5, p6, p10, p11], dtype=np.float32).transpose()
+    return np.array(features_list, dtype=np.float32).transpose()
 
 
 def extract_p1(clicks_gb):
