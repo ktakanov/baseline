@@ -1,11 +1,13 @@
 from read_and_write_data import read_clicks, read_buys, write_predictions, write_metrics,\
     features_to_csv, features_from_csv
 from feature_extraction import extract_buy_or_not, extract_what_to_buy, extract_buys
-from predictions import fit_data, predict_buy_or_not, metrics, split_data
+from predictions import metrics
 from preprocess_data import df_group_by_session_id
 import numpy as np
 import os
 import sys
+from sklearn.cross_validation import train_test_split
+from sklearn.ensemble import RandomForestClassifier
 
 
 if __name__ == '__main__':
@@ -35,8 +37,8 @@ if __name__ == '__main__':
 
     effective_columns_names = ['Session ID', 'Timestamp', 'Item ID']
     clicks = read_clicks(file_clicks, usecols=effective_columns_names)\
-            .sort_values('Timestamp')\
-            .reset_index(drop=True)
+        .sort_values('Timestamp')\
+        .reset_index(drop=True)
     clicks_grouped_by_session_id, clicks_grouped_by_session_id_keys = df_group_by_session_id(clicks)
 
     if os.path.isfile(file_what_to_buy_features):
@@ -56,10 +58,13 @@ if __name__ == '__main__':
     _, buys_grouped_by_session_id_keys = df_group_by_session_id(buys)
     buys_result = extract_buys(clicks_grouped_by_session_id_keys, buys_grouped_by_session_id_keys)
 
-    buy_or_not_train, buy_or_not_val, buys_result_train, buys_result_val = split_data(buy_or_not, buys_result, 0.2)
-    classifier = fit_data(buy_or_not_train, buys_result_train)
+    buy_or_not_train, buy_or_not_val, buys_result_train, buys_result_val = train_test_split(buy_or_not, buys_result,
+                                                                                            test_size=0.2)
 
-    predictions_val = predict_buy_or_not(classifier, buy_or_not_val)
+    classifier = RandomForestClassifier(n_estimators=20, min_samples_split=150, class_weight='auto', n_jobs=-1)
+    classifier.fit(buy_or_not_train, buys_result_train)
+
+    predictions_val = classifier.predict(buy_or_not_val)
     scores = metrics(buys_result_val, predictions_val)
     write_metrics(file_scores, scores)
 
@@ -69,5 +74,5 @@ if __name__ == '__main__':
     what_to_buy_test = extract_what_to_buy(test_grouped_by_session_id)
     buy_or_not_test = extract_buy_or_not(test_grouped_by_session_id, what_to_buy_test)
 
-    predictions_test = predict_buy_or_not(classifier, buy_or_not_test)
+    predictions_test = classifier.predict(buy_or_not_test)
     write_predictions(file_result, predictions_test)

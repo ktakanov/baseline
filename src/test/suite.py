@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from pandas.tslib import Timestamp
 from src.main.feature_extraction import extract_f3, extract_f6, extract_f7, extract_p1, extract_p2, extract_p3,\
-    extract_p4, extract_p5, extract_p6, extract_p10, extract_p11, no_cons_clicks_indicator
+    extract_p4, extract_p5, extract_p6, extract_p10, extract_p11, unique_click_indicator
 
 
 class TestFeatureExtraction(unittest.TestCase):
@@ -84,14 +84,14 @@ class TestFeatureExtraction(unittest.TestCase):
         src = extract_f7(self.gb).sort_values(['Session ID', 'Item ID'])
         dst = pd.DataFrame(np.array([
             [5, 214530776, 430260],
-            [10, 214820942, no_cons_clicks_indicator],
-            [10, 214826810, no_cons_clicks_indicator],
-            [15, 214555903, no_cons_clicks_indicator],
+            [10, 214820942, unique_click_indicator],
+            [10, 214826810, unique_click_indicator],
+            [15, 214555903, unique_click_indicator],
             [15, 214547255, 246255],
-            [20, 214829282, no_cons_clicks_indicator],
-            [20, 214718203, no_cons_clicks_indicator],
-            [20, 214819552, no_cons_clicks_indicator],
-            [25, 214836761, no_cons_clicks_indicator],
+            [20, 214829282, unique_click_indicator],
+            [20, 214718203, unique_click_indicator],
+            [20, 214819552, unique_click_indicator],
+            [25, 214836761, unique_click_indicator],
             [25, 214839313, 8674],
             [30, 214820201, 0]]),
             columns=['Session ID', 'Item ID', 'Time Difference']
@@ -135,5 +135,5 @@ class TestFeatureExtraction(unittest.TestCase):
 
     def test_p11(self):
         src = extract_p11(extract_f7(self.gb))
-        dst = np.array([430260.0, no_cons_clicks_indicator, 246255.0, no_cons_clicks_indicator, 8674.0, 0.0])
+        dst = np.array([430260.0, unique_click_indicator, 246255.0, unique_click_indicator, 8674.0, 0.0])
         np.testing.assert_array_equal(src, dst, 'Incorrect extraction of P11')

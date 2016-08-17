@@ -1,17 +1,4 @@
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
-from sklearn.cross_validation import train_test_split
-
-
-def fit_data(features, outputs):
-    classifier = RandomForestClassifier(n_estimators=20, min_samples_split=150, class_weight='auto', n_jobs=-1)
-    classifier.fit(features, outputs)
-
-    return classifier
-
-
-def predict_buy_or_not(classifier, buy_or_not_features):
-    return classifier.predict(buy_or_not_features)
 
 
 def metrics(y_true, y_pred):
@@ -19,7 +6,3 @@ def metrics(y_true, y_pred):
     accuracy = accuracy_score(y_true, y_pred)
 
     return precision, recall, f1_score, accuracy
-
-
-def split_data(x, y, test_size):
-    return train_test_split(x, y, test_size=test_size)

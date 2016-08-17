@@ -2,16 +2,14 @@ import pandas as pd
 import numpy as np
 import time
 
-no_cons_clicks_indicator = np.finfo(np.float32).max
+unique_click_indicator = np.finfo(np.float32).max
 
 
 def extract_features(feature_name, extractor, *args):
     print 'Extracting feature: ' + feature_name
-
     start_time = time.time()
     features = extractor(*args)
     exec_time = int(time.time() - start_time)
-
     print 'Extraction completed in {0} minutes {1} seconds'.format(exec_time / 60, exec_time % 60)
 
     return features
@@ -29,7 +27,6 @@ def extract_what_to_buy(clicks_gb):
 
 
 def extract_f3(clicks_gb):
-
     def counts(group):
         return pd.Series(group['Item ID'].value_counts(sort=True), name='Counts')
 
@@ -37,7 +34,6 @@ def extract_f3(clicks_gb):
 
 
 def extract_f6(clicks_gb):
-
     def sequent_clicks(group):
         diff = group['Item ID'].diff()
         diff_reverse = group['Item ID'].diff(periods=-1)
@@ -53,7 +49,6 @@ def extract_f6(clicks_gb):
 
 
 def extract_f7(clicks_gb):
-
     def max_duration_between_sequent_clicks(group):
         positive_key = np.int8(1)
         negative_key = np.int8(0)
@@ -62,20 +57,17 @@ def extract_f7(clicks_gb):
         group.insert(loc=group.shape[1], column='Time Difference', value=time_diff)
         group.insert(loc=group.shape[1], column='Repeated Click', value=repeated)
         group_by_repeated = group.groupby('Repeated Click')
-
         result_pos =\
             group_by_repeated.get_group(positive_key).groupby('Item ID')['Time Difference'].max()\
             if positive_key in group_by_repeated.groups.keys()\
             else\
             None
-
         result_neg =\
             group_by_repeated.get_group(negative_key).groupby('Item ID')['Time Difference']\
-                .apply(lambda x: no_cons_clicks_indicator)\
+                .apply(lambda x: unique_click_indicator)\
             if negative_key in group_by_repeated.groups.keys()\
             else\
             None
-
         result = pd.concat([result_pos, result_neg]).sort_values()
 
         return result[~result.index.duplicated()]
@@ -119,7 +111,7 @@ def extract_p4(clicks_gb):
 
 
 def extract_p5(p1, p3):
-    return p3.divide(p1 - 1).replace([np.inf, -np.inf], 0.0)
+    return p3.divide(p1 - 1).replace([np.inf, -np.inf, np.nan], unique_click_indicator)
 
 
 def extract_p6(f3):
@@ -132,8 +124,8 @@ def extract_p10(f6):
 
 def extract_p11(f7):
     return f7.groupby('Session ID')['Time Difference']\
-        .apply(lambda group: group[group < no_cons_clicks_indicator].max())\
-        .fillna(no_cons_clicks_indicator)
+        .apply(lambda group: group[group < unique_click_indicator].max())\
+        .fillna(unique_click_indicator)
 
 
 def extract_buys(clicks_group_keys, buys_group_keys):
