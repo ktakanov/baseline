@@ -7,7 +7,7 @@ import numpy as np
 import os
 import sys
 from sklearn.cross_validation import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 
 
 if __name__ == '__main__':
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     buy_or_not_train, buy_or_not_val, buys_result_train, buys_result_val = train_test_split(buy_or_not, buys_result,
                                                                                             test_size=0.2)
 
-    classifier = RandomForestClassifier(n_estimators=20, min_samples_split=150, class_weight='auto', n_jobs=-1)
+    classifier = XGBClassifier(n_estimators=500, subsample=0.8, colsample_bytree=0.5, max_depth=4, min_child_weight=3)
     classifier.fit(buy_or_not_train, buys_result_train)
 
     predictions_val = classifier.predict(buy_or_not_val)
