@@ -6,7 +6,7 @@ from preprocess_data import df_group_by_session_id
 import numpy as np
 import os
 import sys
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
 
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
                                         {'F3': 'Counts', 'F6': 'Sequent Clicks', 'F7': 'Time Difference'})
     else:
         what_to_buy = extract_what_to_buy(clicks_grouped_by_session_id)
-        features_to_csv(file_what_to_buy_features, what_to_buy.values())
+        features_to_csv(file_what_to_buy_features, list(what_to_buy.values()))
 
     if os.path.isfile(file_buy_or_not_features):
         buy_or_not = np.load(file_buy_or_not_features)

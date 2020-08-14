@@ -1,7 +1,7 @@
 import sys
 import os
-from read_and_write_data import read_clicks, read_buys, write_df
-from preprocess_data import slice_data
+from .read_and_write_data import read_clicks, read_buys, write_df
+from .preprocess_data import slice_data
 
 
 if __name__ == "__main__":

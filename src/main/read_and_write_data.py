@@ -71,7 +71,7 @@ def features_from_csv(file_name, common_col_names, features_col_names_dict):
     features_df = pd.read_csv(file_name, engine='c')
     features_df_dict = features_col_names_dict
 
-    for feature_name, col_name in features_col_names_dict.iteritems():
+    for feature_name, col_name in features_col_names_dict.items():
         features_df_dict[feature_name] = features_df[common_col_names + [col_name]]
 
     return features_df_dict

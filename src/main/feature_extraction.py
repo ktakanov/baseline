@@ -6,11 +6,11 @@ unique_click_indicator = np.finfo(np.float32).max
 
 
 def extract_features(feature_name, extractor, *args):
-    print 'Extracting feature: ' + feature_name
+    print('Extracting feature: ' + feature_name)
     start_time = time.time()
     features = extractor(*args)
     exec_time = int(time.time() - start_time)
-    print 'Extraction completed in {0} minutes {1} seconds'.format(exec_time / 60, exec_time % 60)
+    print('Extraction completed in {0} minutes {1} seconds'.format(exec_time / 60, exec_time % 60))
 
     return features
 
@@ -23,7 +23,7 @@ def extract_what_to_buy(clicks_gb):
     }
 
     return {feature_name: extract_features(feature_name, extractor, arg)
-            for feature_name, (extractor, arg) in features_computation_descs.iteritems()}
+            for feature_name, (extractor, arg) in features_computation_descs.items()}
 
 
 def extract_f3(clicks_gb):
@@ -59,13 +59,13 @@ def extract_f7(clicks_gb):
         group_by_repeated = group.groupby('Repeated Click')
         result_pos =\
             group_by_repeated.get_group(positive_key).groupby('Item ID')['Time Difference'].max()\
-            if positive_key in group_by_repeated.groups.keys()\
+            if positive_key in list(group_by_repeated.groups.keys())\
             else\
             None
         result_neg =\
             group_by_repeated.get_group(negative_key).groupby('Item ID')['Time Difference']\
                 .apply(lambda x: unique_click_indicator)\
-            if negative_key in group_by_repeated.groups.keys()\
+            if negative_key in list(group_by_repeated.groups.keys())\
             else\
             None
         result = pd.concat([result_pos, result_neg]).sort_values()
@@ -76,6 +76,14 @@ def extract_f7(clicks_gb):
 
 
 def extract_buy_or_not(clicks_gb, features_what_to_buy):
+
+    def apply_lambda(tup1_tup2):
+        tup1 = tup1_tup2[0]
+        tup2 = tup1_tup2[0]
+        k1,v1 = tup1
+        k2,v2 = tup2
+        return cmp(int(k1[1:]), int(k2[1:]))
+
     features_computation_descs = {
         'P1': (extract_p1, clicks_gb),
         'P2': (extract_p2, features_what_to_buy['F3']),
@@ -86,10 +94,10 @@ def extract_buy_or_not(clicks_gb, features_what_to_buy):
         'P11': (extract_p11, features_what_to_buy['F7'])
     }
     features = {feature_name: extract_features(feature_name, extractor, arg)
-                for feature_name, (extractor, arg) in features_computation_descs.iteritems()}
+                for feature_name, (extractor, arg) in features_computation_descs.items()}
     features['P5'] = extract_features('P5', extract_p5, features['P1'], features['P3'])
     features_list = [feature for feature_name, feature in
-                     sorted(features.items(), lambda (k1, v1), (k2, v2): cmp(int(k1[1:]), int(k2[1:])))]
+                     sorted(list(features.items()), key=apply_lambda)]
 
     return np.array(features_list, dtype=np.float32).transpose()
 
