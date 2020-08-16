@@ -13,7 +13,7 @@ def read_data(file_name, column_names, dtype_dict, usecols=None):
 def read_clicks(file_clicks, usecols=None):
     column_names = ['Session ID', 'Timestamp', 'Item ID', 'Category']
     dtype_dict = {'Session ID': np.int32,
-                  'Timestamp': pd.tslib.Timestamp,
+                  'Timestamp': pd.Timestamp,
                   'Item ID': np.int32,
                   'Category': str}
 
@@ -23,7 +23,7 @@ def read_clicks(file_clicks, usecols=None):
 def read_buys(file_buys, usecols=None):
     column_names = ['Session ID', 'Timestamp', 'Item ID', 'Price', 'Quantity']
     dtype_dict = {'Session ID': np.int32,
-                  'Timestamp': pd.tslib.Timestamp,
+                  'Timestamp': pd.Timestamp,
                   'Item ID': np.int32,
                   'Price': np.int32,
                   'Quantity': np.int8}
